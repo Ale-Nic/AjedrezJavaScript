@@ -1,0 +1,19 @@
+.chess-board {
+  border-collapse: collapse;
+  margin: 20px auto;
+}
+
+.cell {
+  width: 60px;
+  height: 60px;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+.light { background: #f0d9b5; }
+.dark { background: #b58863; }
+.selected { outline: 2px solid red; }
+.valid { outline: 2px solid green; }
+.status { margin-bottom: 10px; }
