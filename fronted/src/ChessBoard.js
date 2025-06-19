@@ -10,11 +10,12 @@ const PIECES = {
 
 function ChessBoard() {
   const [core] = useState(() => new AjedrezCore());
-  const [ai] = useState(() => new AlfaBeta(core.estado, 'negro'));
+  const [ai] = useState(() => new AlfaBeta(core.estado, 'negro', 5));
   const [board, setBoard] = useState(core.getEstado());
   const [selected, setSelected] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
   const [status, setStatus] = useState('en curso');
+  const [message, setMessage] = useState('');
 
   const handleCellClick = (r, c) => {
     if (status !== 'en curso') return;
@@ -29,6 +30,15 @@ function ChessBoard() {
           setBoard(core.getEstado());
           nextStatus = core.estadoPartida();
           setStatus(nextStatus);
+        }
+        if (nextStatus !== 'en curso') {
+          setMessage(
+            nextStatus === 'tablas'
+              ? '¡Tablas!'
+              : nextStatus === 'blanco'
+              ? '¡Has ganado!'
+              : '¡La IA gana!'
+          );
         }
       }
       setSelected(null);
@@ -48,6 +58,7 @@ function ChessBoard() {
   return (
     <div>
       <div className="status">Turno: {core.estado.jugadorActual()} - {status}</div>
+      <div className="board-wrapper">
       <table className="chess-board">
         <tbody>
           {board.map((row, r) => (
@@ -80,6 +91,8 @@ function ChessBoard() {
           ))}
         </tbody>
       </table>
+      </div>
+      {message && <div className="message">{message}</div>}
     </div>
   );
 }

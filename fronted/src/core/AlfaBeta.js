@@ -75,10 +75,11 @@ class AlfaBeta {
         -50,-30,-30,-30,-30,-30,-30,-50
     ];
 
-    constructor(estado, color, max_depth = 3) {
+    constructor(estado, color, max_depth = 5) {
         this.estado = estado;
         this.color = color;
         this.max_depth = max_depth;
+        this.ttable = new Map();
     }
 
     evaluar(estado) {
@@ -183,25 +184,41 @@ class AlfaBeta {
     }
 
     AlfaBeta(estado, depth, alfa, beta, maximizar) {
-        if (depth === 0 || estado.terminado()) return [this.evaluar(estado), null];
+        const clave = estado.tablero.tablero.flat().join('') + estado.jugadorActual();
+        const hit = this.ttable.get(clave);
+        if (hit && hit.depth >= depth) return [hit.valor, hit.jugada];
+
+        if (depth === 0 || estado.terminado()) {
+            const val = this.evaluar(estado);
+            this.ttable.set(clave, { valor: val, jugada: null, depth });
+            return [val, null];
+        }
+
         let mejorJugada = null;
+        const sucesores = estado
+            .sucesores()
+            .map(([s, j]) => [s, j, this.evaluar(s)])
+            .sort((a, b) => (maximizar ? b[2] - a[2] : a[2] - b[2]));
+
         if (maximizar) {
             let valor = -Infinity;
-            for (const [sucesor, jugada] of estado.sucesores()) {
+            for (const [sucesor, jugada] of sucesores) {
                 const [puntos] = this.AlfaBeta(sucesor, depth - 1, alfa, beta, false);
                 if (puntos > valor) { valor = puntos; mejorJugada = jugada; }
                 alfa = Math.max(alfa, valor);
                 if (alfa >= beta) break;
             }
+            this.ttable.set(clave, { valor, jugada: mejorJugada, depth });
             return [valor, mejorJugada];
         } else {
             let valor = Infinity;
-            for (const [sucesor, jugada] of estado.sucesores()) {
+            for (const [sucesor, jugada] of sucesores) {
                 const [puntos] = this.AlfaBeta(sucesor, depth - 1, alfa, beta, true);
                 if (puntos < valor) { valor = puntos; mejorJugada = jugada; }
                 beta = Math.min(beta, valor);
                 if (beta <= alfa) break;
             }
+            this.ttable.set(clave, { valor, jugada: mejorJugada, depth });
             return [valor, mejorJugada];
         }
     }
